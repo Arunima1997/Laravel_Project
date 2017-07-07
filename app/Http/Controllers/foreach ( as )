@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use resources\views;
+use Input;
+use Illuminate\Support\Facades\Schema;
+
+class HomeController extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        
+	
+	$var=auth()->user()->email;
+	//dd($var);
+	$sub = DB::table('sub')->select('Subject_Name')->where('sub.Email_id','=',$var)->get();
+	//dd($sub);
+        //return $subject;
+	//session()->put('$sub');
+        return view('home', compact('sub'));
+    }
+
+    
+    public function report($value)
+    {
+	//dd($value);
+	$subid = DB::table('sub')->select('Subject_Id')->where('sub.Subject_Name','=',$value)->get();
+	$year = DB::table('sub')->select('Year')->where('sub.Subject_Name','=',$value)->get();
+
+	//dd($year);
+		ob_start();
+                echo $year;
+                $output=ob_get_contents();
+                ob_end_clean();
+                
+                if ( $output=='[{"Year":1}]')
+                {
+
+                        $req = "first";
+                }
+                elseif ( $output=='[{"Year":2}]')
+                {
+
+                        $req = "second";
+                }
+                elseif ( $output=='[{"Year":3}]')
+                {
+
+                        $req = "third";
+                }
+                elseif ( $output=='[{"Year":4}]')
+                {
+
+                        $req = "fourth";
+                }
+
+                $final = DB::table($req)->get();
+		$test = $final->pluck($subid);
+		
+	return view('report',compact('value','final','test'));
+    }
+
+   public function report_generate($tabu) 
+   	{
+ 		$year = DB::table('sub')->select('Year')->where('sub.Subject_Name','=',$tabu)->get();
+		$sub_id = DB::table('sub')->select('Subject_Id')->where('sub.Subject_Name','=',$tabu)->get();
+        	//dd($year);
+                ob_start();
+                echo $year;
+                $output=ob_get_contents();
+                ob_end_clean();
+                if ( $output=='[{"Year":1}]')
+                {
+
+                        $req = "first";
+                }
+                elseif ( $output=='[{"Year":2}]')
+                {
+
+                        $req = "second";
+                }
+                elseif ( $output=='[{"Year":3}]')
+                {
+
+                        $req = "third";
+                }
+                elseif ( $output=='[{"Year":4}]')
+                {
+
+                        $req = "fourth";
+                }
+
+                $final = DB::table($req)->get();
+		//dd($final);
+		//$columns = Schema::getColumnListing($req);
+		//dd($sub_id);
+		ob_start();
+                echo $sub_id;
+		//dd($sub_id);
+                $va=ob_get_clean();
+		$va = stripslashes($va);
+		$txt = rtrim($va,"}]");
+		$txt = ltrim($txt,"[{Subject_Id:");
+		$txt = ltrim($txt,"Subject_Id:");
+		$txt = explode(":",$txt);
+		$txt = str_replace('"','', $txt);
+		//dd($txt[1]);
+		
+		$columns = Schema::getColumnListing($req);
+		//dd($columns);
+		//dd($txt);
+		foreach ($columns as $col)
+		{
+			//dd("Y");
+			if($col == $txt[1])
+			{	
+				$got=DB::table($req)->select($col)->get();
+				//dd($got);
+				//dd(request()->all());
+				$i=0;
+				foreach($got as $g)
+				{	
+					$arr= request()->all('$key');
+					dd($arr);
+					if($i==request()->all('"$key"')) 
+					{
+    					//dd("checked");
+					$value=DB::table($req)->where('Class_Roll',$i+1)->pluck($txt[1]);
+					$i++;
+					dd("done");	
+					}
+					else
+						$i++;
+				}
+				dd($i);
+			}
+		}
+		//return request()->all();
+	}
+
+    public function attendance($name)
+	{
+		//dd($name);
+		$year = DB::table('sub')->select('Year')->where('sub.Subject_Name','=',$name)->get();	
+		$sub_id = DB::table('sub')->select('Subject_Id')->where('sub.Subject_Name','=',$name)->get();
+		//dd($sub_id);
+		//$a = array();
+		//dd(print_r($year));
+		//$a=(array)$year;
+		//$a = $year;
+		//dd($year);
+		ob_start();
+		echo $year;
+		$output=ob_get_contents();
+		ob_end_clean();
+		//dd($output);
+		if ( $output=='[{"Year":1}]')
+		{	//dd("yes");	
+			
+			$req = "first";
+		}
+		elseif ( $output=='[{"Year":2}]')
+                {       //dd("yes");
+
+                        $req = "second";
+                }
+		elseif ( $output=='[{"Year":3}]')
+                {       //dd("yes");
+
+                        $req = "third";
+                }
+		elseif ( $output=='[{"Year":4}]')
+                {       //dd("yes");
+
+                        $req = "fourth";
+                }
+	
+               	$second = DB::table($req)->get();
+                return view('attendance', compact('second','name'));
+		//return view('attendance');
+	}
+}

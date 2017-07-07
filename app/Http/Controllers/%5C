@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+//use resources\views\auth;
+
+
+class HomeController extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+	//$var=auth()->user()->email;
+	//$sub = DB::table('sub')->select('Subject_Name')->where('sub.Email_id','=',$var)->get();
+	
+    }
+
+
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        
+	
+	$var=auth()->user()->email;
+	//dd($var);
+	$sub = DB::table('sub')->select('Subject_Name')->where('sub.Email_id','=',$var)->get();
+	//dd($sub);
+        //return $subject;
+	session()->put('$sub');
+        return view('home', compact('sub'));
+    }
+   public function attendance()
+	{
+		dd(session()->get('$sub'));
+		$second = DB::table('second')->get();
+		return view('attendance', compact('second'));
+	}
+}
